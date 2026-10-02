@@ -1,0 +1,393 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emote &amp; Chat</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;700&display=swap">
+<style>
+/* Layout: wooden panels on a grass field, parchment inside, a smaller grass patch where the icons live. 2px pixel grid. Single look by choice. */
+:root {
+  --ink: #3e2111;
+  --wood: #cf7e30;
+  --wood-l: #f3ae55;
+  --wood-d: #8a3f15;
+  --paper: #f8dc9a;
+  --paper-2: #ecba72;
+  --grass-a: #76ab3f;
+  --grass-b: #7fb546;
+  --grass-d: #4f7f2c;
+  --soil-a: #8abb4d;
+  --soil-b: #95c757;
+  --red: #b8261d;
+  --gold: #f2c14e;
+  --pixel: "Pixelify Sans", "Courier New", monospace;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; color: var(--ink); font-family: var(--pixel); font-size: 16px; line-height: 1.4;
+  background-color: var(--grass-b);
+  background-image:
+    repeating-conic-gradient(var(--grass-a) 0 25%, transparent 0 50%),
+    radial-gradient(circle at 25% 30%, rgba(62,110,38,.55) 0 2px, transparent 3px),
+    radial-gradient(circle at 70% 75%, rgba(62,110,38,.55) 0 2px, transparent 3px);
+  background-size: 4px 4px, 64px 64px, 96px 96px;
+  -webkit-font-smoothing: none;
+}
+.farm { max-width: 1000px; margin: 0 auto; padding-inline: max(16px, 4vw); padding-block: 48px 80px; display: flex; flex-direction: column; gap: 40px; }
+.win { position: relative; background: var(--wood); padding: 8px; min-width: 0;
+  box-shadow: 0 0 0 2px var(--ink), inset 0 2px 0 var(--wood-l), inset 2px 0 0 var(--wood-l), 0 8px 0 2px rgba(62,33,17,.35); }
+.inner { background: var(--paper); box-shadow: 0 0 0 2px var(--wood-d), inset 0 -3px 0 var(--paper-2); }
+.head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 16px 0; flex-wrap: wrap; }
+.head h2 { margin: 0; font-size: 20px; font-weight: 700; }
+.chip { font-size: 13px; background: var(--wood-l); padding: 2px 10px; box-shadow: 0 0 0 2px var(--ink), 0 3px 0 2px var(--wood-d); }
+.body { padding: 16px 20px 22px; }
+.eyebrow { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--wood-d); }
+h1 { margin: 8px 0 0; font-size: clamp(40px, 8vw, 64px); font-weight: 700; line-height: 1; color: var(--gold); text-shadow: 3px 3px 0 var(--ink), -2px 0 0 var(--ink), 0 -2px 0 var(--ink), 2px 0 0 var(--ink), 0 2px 0 var(--ink), 3px 5px 0 var(--wood-d); letter-spacing: .01em; text-wrap: balance; }
+.lede { margin: 16px 0 0; max-width: 62ch; }
+.field { margin: 12px 16px 0; background-color: var(--soil-b);
+  background-image: repeating-conic-gradient(var(--soil-a) 0 25%, transparent 0 50%); background-size: 4px 4px;
+  box-shadow: inset 0 0 0 2px var(--wood-d), inset 0 4px 0 2px rgba(62,110,38,.35);
+  display: flex; flex-wrap: wrap; justify-content: space-evenly; align-items: flex-end; gap: 4px 12px; padding-block: 14px 8px; }
+#note-stage { padding-top: 250px; }
+.status { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 12px 16px 16px; font-size: 14px; }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.btn { font: 500 14px var(--pixel); background: var(--wood-l); color: var(--ink); border: 0; padding: 4px 14px; cursor: pointer;
+  box-shadow: 0 0 0 2px var(--ink), 0 4px 0 2px var(--wood-d); position: relative; top: 0; }
+.btn:hover { background: var(--gold); }
+.btn:active { top: 3px; box-shadow: 0 0 0 2px var(--ink), 0 1px 0 2px var(--wood-d); }
+.btn:focus-visible { outline: 2px dashed var(--ink); outline-offset: 5px; }
+.chk { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; }
+.chk input { appearance: none; width: 16px; height: 16px; margin: 0; background: var(--paper); box-shadow: 0 0 0 2px var(--ink); cursor: pointer; }
+.chk input:checked { background: var(--gold); box-shadow: 0 0 0 2px var(--ink), inset 0 0 0 3px var(--paper); }
+.chk input:focus-visible { outline: 2px dashed var(--ink); outline-offset: 4px; }
+
+.inst { position: relative; flex: none; }
+.inst canvas { position: absolute; left: 0; top: 0; image-rendering: pixelated; image-rendering: crisp-edges; pointer-events: none; }
+.hit { position: absolute; background: transparent; border: 0; padding: 0; cursor: pointer; }
+.hit:focus-visible { outline: 2px dashed var(--ink); outline-offset: 2px; }
+.lbl { position: absolute; text-align: center; font-size: 13px; line-height: 1; pointer-events: none; }
+.lbl span { display: inline-block; background: var(--paper); padding: 2px 6px 3px; box-shadow: 0 0 0 2px var(--ink); }
+.inst.sel .lbl span { background: var(--gold); }
+.btxt { position: absolute; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; line-height: 1; letter-spacing: .04em; color: var(--red); pointer-events: none; white-space: nowrap; }
+.frame { position: absolute; background: var(--paper); color: var(--ink);
+  box-shadow: 0 0 0 2px var(--wood-d), 0 0 0 6px var(--wood), 0 -2px 0 6px var(--wood-l), 0 0 0 8px var(--ink), 4px 8px 0 8px rgba(62,33,17,.35); }
+.hov { position: fixed; z-index: 50; width: 220px; padding: 8px 12px 10px; pointer-events: none; visibility: hidden; }
+.hov strong { display: block; font-size: 17px; font-weight: 700; line-height: 1.2; }
+.hov .cat { display: block; font-size: 13px; color: var(--wood-d); margin-top: 2px; }
+.hov hr { border: 0; border-top: 2px solid rgba(122,62,23,.3); margin: 8px 0 6px; }
+.hov p { margin: 0; font-size: 14px; line-height: 1.45; }
+.dlg { left: 8px; width: 400px; z-index: 5; display: flex; visibility: hidden; transform-origin: 50% 50%; }
+.dlg .txt { flex: 1; min-width: 0; padding: 12px 14px 10px 16px; display: flex; flex-direction: column; gap: 8px; }
+.dlg .say { margin: 0; font-size: 16px; line-height: 1.5; min-height: 72px; cursor: inherit; }
+.dlg .opts { display: flex; flex-direction: column; gap: 2px; }
+.dlg .opt { font: 400 15px var(--pixel); color: var(--ink); background: transparent; border: 0; text-align: left; padding: 3px 6px 3px 22px; position: relative; cursor: inherit; }
+.dlg .opt::before { content: ""; position: absolute; left: 6px; top: 50%; width: 10px; height: 12px; margin-top: -6px; background: var(--wood); clip-path: polygon(0 0, 100% 50%, 0 100%); visibility: hidden; }
+.dlg .opt:hover, .dlg .opt:focus-visible { background: rgba(242,193,78,.45); outline: 0; }
+.dlg .opt:hover::before, .dlg .opt:focus-visible::before { visibility: visible; }
+.dlg .port { flex: none; width: 104px; border-left: 4px solid var(--wood); box-shadow: inset 2px 0 0 var(--wood-d), -2px 0 0 var(--wood-d); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 10px 6px; }
+.dlg .pic { width: 80px; height: 80px; background: var(--paper-2); box-shadow: inset 0 0 0 2px var(--wood-d); display: grid; place-items: center; }
+.dlg .pic canvas { position: static; width: 72px; height: 72px; image-rendering: pixelated; }
+.dlg .name { font-size: 12px; background: var(--wood-l); padding: 1px 6px 2px; box-shadow: 0 0 0 2px var(--ink); white-space: nowrap; }
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 20px; }
+.notes h3 { margin: 0 0 4px; font-size: 15px; font-weight: 700; }
+.notes p { margin: 0; font-size: 14px; }
+</style>
+</head>
+<body>
+
+
+<main class="farm">
+  <section class="win" aria-labelledby="about-t">
+    <div class="inner">
+      <div class="head"><p class="eyebrow" id="about-t">Advanced Interface · Week 2 · Tone: Playful</p><span class="chip">Spring 12 · 6:00am</span></div>
+      <div class="body">
+        <h1>Emote &amp; Chat</h1>
+        <p class="lede">A farm-day interface inspired by Stardew Valley: a grass field, wooden frames, parchment notes and chunky pixels. Badges are emote bubbles, the kind that pops up over a villager's head: a bubble snaps open above the icon in four frames and keeps bobbing until you've looked. Point at the seeds and an item box follows your cursor, the way item info does in the game. Point at the watering can and it talks back in a dialogue box, typing its words out one letter at a time. Everything moves at 12 frames a second.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" aria-labelledby="hop-t">
+    <div class="inner">
+      <div class="head"><h2 id="hop-t">Emote · badges</h2><span class="chip">Click an icon</span></div>
+      <div class="field" id="hop-stage"></div>
+      <div class="status">
+        <span id="hop-status">4 things</span>
+        <div class="btns"><button class="btn" type="button" id="all-on">All on</button><button class="btn" type="button" id="all-off">All off</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" aria-labelledby="note-t">
+    <div class="inner">
+      <div class="head"><h2 id="note-t">Chat · tooltips</h2><span class="chip">Point at an icon</span></div>
+      <div class="field" id="note-stage"></div>
+      <div class="status">
+        <span>Esc closes the dialogue.</span>
+        <label class="chk"><input type="checkbox" id="slow"> Slow motion</label>
+      </div>
+    </div>
+  </section>
+
+  <section class="win" aria-labelledby="notes-t">
+    <div class="inner">
+      <div class="head"><h2 id="notes-t">States</h2></div>
+      <div class="body notes">
+        <div><h3>Badge, no content</h3><p>Click Crops. A bubble snaps open over the turnip in four frames, overshoots a little, then bobs with a red dot inside. Click again and it pinches shut.</p></div>
+        <div><h3>Badge, with content</h3><p>Mail, Chest and Shop carry a count or a word inside the bubble. Same pop open, same bob, same pinch shut.</p></div>
+        <div><h3>Tooltip, plain</h3><p>Point at Seeds. An item box appears right under the cursor and follows it: name, category, one line of info. Move off the packet and it is gone. No action inside.</p></div>
+        <div><h3>Tooltip, rich</h3><p>Point at the watering can. A dialogue box opens in four steps, types its message out letter by letter (click to skip), then offers two answers. Pick one to act. It stays open while the pointer is inside it.</p></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const U = 2, FRAME = 1000 / 12;
+  const DATA = {"pal":{"o":"#3e2111","c":"#fff1cf","r":"#d0413a","R":"#8e2a24","l":"#ec7868","y":"#f2c14e","Y":"#c98e2a","g":"#6dbb45","G":"#3c7a2e","w":"#b5652b","W":"#e4a45a","D":"#7a3e17","b":"#5da9e9","B":"#2f6fb0","p":"#eca0be","k":"#5a2d14","e":"#f08a24","h":"#f5c88c","s":"#96c8f0"},"icons":{"mail":["........................","........................","........................","..................oooo..",".................oDYyyo.","......ooooooooooooDyyyo.",".....orrrrrrrrrrroDyyyo.","....orlllllllllllrDooo..","....orrrrrrrrrrrrrDo....","....oRRrrrrrrrrrrrDo....","....oRRrrrrrrrrrrrDo....","....oRRrrrrrrrrrrro.....","....oRRrrrrrrrrrrro.....","....orrrrrrrrrrrrro.....",".....ooooooWwooooo......","..........oWwo..........","..........oWwo..........","..........oWwo..........","..........oWwo..........","..........oWwo..........",".......ooooWwoooo.......","......oGGGGGGGGGGo......",".......oooooooooo.......","........................"],"chest":["........................","........................","........................","....oooooooooooooooo....","...oWWWWWWWWWWWWWWWWo...","..oYhhhhhhhhhhhhhhhhYo..","..oYWWWWWWWWWWWWWWWWYo..","..oYWWWWWWWWWWWWWWWWYo..","..oYWWWWWWyyyyWWWWWWYo..","..oYDDDDDDyyyyDDDDDDYo..","..oYDDDDDDyooyDDDDDDYo..","..oYwwwwwwyooywwwwwwYo..","..oYwwwwwwyyyywwwwwwYo..","..oYwwwwwwwwwwwwwwwwYo..","..oYwwwwwwwwwwwwwwwwYo..","..oYwwwwwwwwwwwwwwwwYo..","..oYwwwwwwwwwwwwwwwwYo..","..oYwwwwwwwwwwwwwwwwYo..","..oYDDDDDDDDDDDDDDDDYo..","..oYDDDDDDDDDDDDDDDDYo..","...oooooooooooooooooo...","........................","........................","........................"],"crops":["........................","........................","......o....oo...........",".....ogo..ogGo...oo.....","....ogGgo.oggo..ogGo....",".....ogggooggo.ogggo....","......ogggoggoogggo.....",".......ogggggogggo......","........ogggggggo.......",".........ogggggo........",".........opgggpo........","........opppppppo.......",".......opppppppppo......","......occpppppppcco.....","......occcpppppccco.....","......occccccccccco.....","......occccccccccco.....",".......occccccccco......","........occccccco.......","....oooooocccccooooo....","...okkkkkkkkkkkkkkkko...","...okkkkkkkkkkkkkkkko...","....oooooooooooooooo....","........................"],"shop":["........................","........................","........................","..ooooooooooooooooooooo.",".orrrcccrrrcccrrrcccrrro",".orrrcccrrrcccrrrcccrrro",".orrrcccrrrcccrrrcccrrro",".orrrcccrrrcccrrrcccrrro",".orrrcccrrrcccrrrcccrrro","..oroocooroocooroocooro.","...owoo..o..o..o..owoo..","...owo.o...o...o..owo...","...owooeo.ogo.oro.owo...","...owoeeeogggorrroowo...","..oowooeooogooorooowoo..",".oWWWWWWWWWWWWWWWWWWWWo.",".owwwwwwwwwwwwwwwwwwwwo.",".owwwwwwwwwwwwwwwwwwwwo.",".owwwwwwwwwwwwwwwwwwwwo.",".owwwwwwwwwwwwwwwwwwwwo.","..oooooooooooooooooooo..","........................","........................","........................"],"seeds":["........................","........................","......oooooooooooo......",".....oggggggggggggo.....",".....oggggggggggggo.....",".....oggggggggggggo.....",".....oGGGGGGGGGGGGo.....",".....occcccccccccco.....",".....occcccccccccco.....",".....occcggccccccco.....",".....occcggGggcccco.....",".....occcccGggcccco.....",".....occcccGcccccco.....",".....occcccGcccccco.....",".....occcccGcccccco.....",".....occcccGcccccco.....",".....occcccccccccco.....",".....occkkcccckkcco.....",".....occccckkccccco.....",".....occcccccccccco.....",".....occcccccccccco.....","......oooooooooooo......","........................","........................"],"can":["........................","........................","........................",".........ooo............",".......ooBBBoo..........","......oBBBBBBBo....ooo..","......oBBoooBBo...oyyyo.",".....oBBo...oBBo..oyyyo.",".....oBBoooooBBo..oyyyo.",".....obbbbbbbbbo..oboo..","....obbbbbbbbbbboobbbo..","....obssbbbbbbbbobbbo...","....obssbbbbbbbbobbo....","....obssbbbbbbbbbbo.....","....obssbbbbbbbbbbo.....","....obssbbbbbbbbbo......","....obssbbbbbbbbo.......","....obssbbbbbbbbo.......","....obbbbbbbbbbbo.......","....oBBBBBBBBBBBo.......",".....ooooooooooo........","........................","........................","........................"]}};
+  const PAL = Object.assign({}, DATA.pal, { F: '#5f8f35', x: '#ffffff', d: '#ecd29a', c: '#fff1cf' });
+  const ICONS = DATA.icons;
+  const S = { slow: false, frozen: false };
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const probe = document.createElement('span');
+  probe.style.cssText = 'position:absolute;left:-9999px;top:0;visibility:hidden;white-space:nowrap';
+  document.body.appendChild(probe);
+  const textW = (txt, font) => { probe.style.font = font; probe.textContent = txt; return probe.getBoundingClientRect().width; };
+
+  function px(ctx, key, x, y, w = 1, h = 1) { ctx.fillStyle = PAL[key]; ctx.fillRect(x, y, w, h); }
+  function drawIcon(ctx, rows, ox, oy) { rows.forEach((r, y) => { for (let x = 0; x < r.length; x++) if (r[x] !== '.') px(ctx, r[x], ox + x, oy + y); }); }
+  function roundIn(x, y, bx, by, bw, bh, r) {
+    if (x < bx || y < by || x >= bx + bw || y >= by + bh) return false;
+    const cx = x < bx + r ? bx + r : x >= bx + bw - r ? bx + bw - r - 1 : x;
+    const cy = y < by + r ? by + r : y >= by + bh - r ? by + bh - r - 1 : y;
+    const dx = x - cx, dy = y - cy; return dx * dx + dy * dy <= r * r + r * .8;
+  }
+  function shape(ctx, inside, bbox, { fill = 'c', border = 'o', shadow = 0, shadowKey = 'F' }) {
+    const [x0, y0, x1, y1] = bbox;
+    if (shadow) for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (inside(x, y) && !inside(x + shadow, y + shadow)) px(ctx, shadowKey, x + shadow, y + shadow);
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      if (!inside(x, y)) continue;
+      const edge = !inside(x - 1, y) || !inside(x + 1, y) || !inside(x, y - 1) || !inside(x, y + 1);
+      px(ctx, edge ? border : fill, x, y);
+    }
+  }
+  function star(ctx, x, y, big) { if (big) { px(ctx, 'y', x, y - 1); px(ctx, 'y', x - 1, y, 3, 1); px(ctx, 'y', x, y + 1); px(ctx, 'x', x, y); } else px(ctx, 'y', x, y); }
+  function makeCanvas(el) {
+    const c = document.createElement('canvas'); el.appendChild(c);
+    const ctx = c.getContext('2d'); ctx.resize = (W, H) => { c.width = W; c.height = H; c.style.width = W * U + 'px'; c.style.height = H * U + 'px'; };
+    return ctx;
+  }
+  function label(el, text, cx, top) {
+    const l = document.createElement('div'); l.className = 'lbl';
+    Object.assign(l.style, { left: (cx - 32) * U + 'px', width: 64 * U + 'px', top: top * U + 'px' });
+    l.innerHTML = `<span>${text}</span>`; el.appendChild(l); return l;
+  }
+  const all = [];
+
+  /* ---------------- Emote : badge ---------------- */
+  // an emote bubble pops open above the icon in 4 frames, then keeps bobbing like a villager's "!"
+  const ENTER_B = [{}, { b: .3 }, { b: .7 }, { b: 1.15 }, { b: 1 }];
+  const EXIT_B = [{ b: 1 }, { b: 1.12 }, { b: .6 }, { b: .25 }, {}];
+  const BOB = [0, 0, -1, -1, -1, -2, -2, -2, -1, -1, -1, 0];
+  let hopCount = 0;
+  class Hop {
+    constructor(host, o) {
+      Object.assign(this, o);
+      this.W = 64; this.H = 72; this.ix = 20; this.iy = 26;
+      this.on = false; this.seq = null; this.f = 0; this.bob = (hopCount++) * 3;
+      const el = this.el = document.createElement('div'); el.className = 'inst';
+      el.style.width = this.W * U + 'px'; el.style.height = this.H * U + 'px'; host.appendChild(el);
+      this.ctx = makeCanvas(el); this.ctx.resize(this.W, this.H);
+      this.txt = document.createElement('span'); this.txt.className = 'btxt'; el.appendChild(this.txt);
+      label(el, this.label, this.ix + 12, this.iy + 29);
+      const hit = this.hit = document.createElement('button'); hit.type = 'button'; hit.className = 'hit';
+      Object.assign(hit.style, { left: (this.ix - 4) * U + 'px', top: (this.iy - 4) * U + 'px', width: 32 * U + 'px', height: 42 * U + 'px' });
+      hit.addEventListener('click', () => this.toggle());
+      hit.addEventListener('focus', () => el.classList.add('sel')); hit.addEventListener('blur', () => el.classList.remove('sel'));
+      el.appendChild(hit);
+      this.measure();
+    }
+    measure() {
+      if (this.content) { const tw = Math.max(textW(this.content, '700 13px "Pixelify Sans", monospace'), this.content.length * 9); this.bw = Math.max(12, Math.ceil(tw / U) + 10); }
+      else this.bw = 12;
+      this.bh = 13; this.render(this.frame());
+    }
+    cur() { return this.seq ? this.seq === ENTER_B : this.on; }
+    toggle(v) { const want = v === undefined ? !this.cur() : v; if (want === this.cur()) return; this.seq = want ? ENTER_B : EXIT_B; this.f = 0; this.render(this.frame()); }
+    frame() { return this.seq ? this.seq[this.f] : (this.on ? { b: 1, dy: BOB[this.bob % BOB.length] } : {}); }
+    step() {
+      if (!this.seq) { if (this.on) { this.bob++; this.render(this.frame()); } return; }
+      this.f++;
+      if (this.f >= this.seq.length - 1) { const last = this.seq; this.on = last === ENTER_B; this.seq = null; this.bob = 0; this.render(this.frame()); update(); return; }
+      this.render(this.frame());
+    }
+    render(fr) {
+      const ctx = this.ctx; ctx.clearRect(0, 0, this.W, this.H);
+      drawIcon(ctx, ICONS[this.icon], this.ix, this.iy);
+      this.txt.style.visibility = 'hidden';
+      if (fr.b) {
+        const s = fr.b, dy = fr.dy || 0, cx = this.ix + 12, tip = this.iy - 2 + dy;
+        const tail = s >= .6 ? 2 : 0, bottom = tip - tail;
+        const w = Math.max(3, Math.round(this.bw * s)), h = Math.max(3, Math.round(this.bh * s));
+        const x0 = cx - Math.floor(w / 2), y0 = bottom - h, r = Math.min(3, Math.floor(h / 3));
+        const inside = (x, y) => roundIn(x, y, x0, y0, w, h, r) || (tail && ((y === bottom && x >= cx - 1 && x <= cx + 1) || (y === bottom + 1 && x === cx)));
+        shape(ctx, inside, [x0 - 1, y0 - 1, x0 + w, tip + 1], { fill: 'c', border: 'o', shadow: 1, shadowKey: 'F' });
+        if (w > 6) for (let X = x0 + 2; X < x0 + w - 2; X++) px(ctx, 'd', X, y0 + h - 2);
+        if (!this.content && s >= .9) {
+          const dx0 = x0 + Math.floor((w - 5) / 2), dy0 = y0 + Math.floor((h - 1 - 5) / 2);
+          px(ctx, 'r', dx0 + 1, dy0, 3, 1); px(ctx, 'r', dx0, dy0 + 1, 5, 3); px(ctx, 'r', dx0 + 1, dy0 + 4, 3, 1); px(ctx, 'l', dx0 + 1, dy0 + 1);
+        }
+        if (this.content && s === 1) {
+          Object.assign(this.txt.style, { visibility: 'visible', left: x0 * U + 'px', top: y0 * U + 'px', width: w * U + 'px', height: (h - 1) * U + 'px' });
+          this.txt.textContent = this.content;
+        }
+      }
+      const shown = !!(fr.b && fr.b >= 1);
+      this.hit.setAttribute('aria-label', `${this.label}, badge ${shown ? (this.content || 'dot') : 'off'}. Toggle badge`);
+      this.hit.setAttribute('aria-pressed', this.cur() ? 'true' : 'false');
+    }
+  }
+
+  /* ---------------- Tooltips ---------------- */
+  // pixel arrow cursor, drawn here so the whole field uses it
+  const CURSOR = ['O...........','OO..........','OcO.........','OccO........','OcccO.......','OccccO......','OcccccO.....','OccccccO....','OcccccccO...','OccccccccO..','OcccccOOOOO.','OccOccO.....','OcO.OccO....','OO..OccO....','O....OccO...','.....OccO...','......OO....'];
+  (() => { const c = document.createElement('canvas'); c.width = 24; c.height = 34; const x = c.getContext('2d');
+    CURSOR.forEach((r, y) => { for (let i = 0; i < r.length; i++) if (r[i] !== '.') { x.fillStyle = r[i] === 'O' ? PAL.o : PAL.c; x.fillRect(i * 2, y * 2, 2, 2); } });
+    const st = document.createElement('style'); st.textContent = `.field, .field *, .hov, .dlg, .dlg * { cursor: url(${c.toDataURL()}) 0 0, default !important; }`; document.head.appendChild(st); })();
+
+  // Plain: item box that follows the cursor, no animation
+  class HoverTip {
+    constructor(host, o) {
+      Object.assign(this, o); this.ix = 20; this.iy = 14;
+      const el = this.el = document.createElement('div'); el.className = 'inst';
+      this.W = 64; this.H = 60; el.style.width = this.W * U + 'px'; el.style.height = this.H * U + 'px'; host.appendChild(el);
+      this.ctx = makeCanvas(el); this.ctx.resize(this.W, this.H); drawIcon(this.ctx, ICONS[this.icon], this.ix, this.iy);
+      label(el, this.label, this.ix + 12, this.iy + 29);
+      const box = this.box = document.createElement('div'); box.className = 'frame hov'; box.id = 'hov' + all.length; box.setAttribute('role', 'tooltip');
+      box.innerHTML = `<strong>${this.title}</strong><span class="cat">${this.cat}</span><hr><p>${this.desc}</p>`;
+      document.body.appendChild(box);
+      const hit = this.hit = document.createElement('button'); hit.type = 'button'; hit.className = 'hit';
+      hit.setAttribute('aria-label', this.label); hit.setAttribute('aria-describedby', box.id);
+      Object.assign(hit.style, { left: (this.ix - 4) * U + 'px', top: (this.iy - 4) * U + 'px', width: 32 * U + 'px', height: 42 * U + 'px' });
+      el.appendChild(hit);
+      const at = (x, y) => { const bw = box.offsetWidth, bh = box.offsetHeight; let L = x + 20, T = y + 22;
+        if (L + bw + 12 > innerWidth) L = x - bw - 16; if (T + bh + 12 > innerHeight) T = y - bh - 16;
+        box.style.left = L + 'px'; box.style.top = T + 'px'; };
+      this.show = (x, y) => { at(x, y); box.style.visibility = 'visible'; el.classList.add('sel'); this.on = true; };
+      this.hide = () => { box.style.visibility = 'hidden'; el.classList.remove('sel'); this.on = false; };
+      hit.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') this.show(e.clientX, e.clientY); });
+      hit.addEventListener('pointermove', e => { if (e.pointerType === 'mouse' && this.on) at(e.clientX, e.clientY); });
+      hit.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') this.hide(); });
+      const near = () => { const r = hit.getBoundingClientRect(); return [r.left + r.width * .6, r.top + r.height * .45]; };
+      hit.addEventListener('click', e => { if (e.pointerType !== 'mouse') this.on ? this.hide() : this.show(...near()); });
+      hit.addEventListener('focus', () => this.show(...near()));
+      hit.addEventListener('blur', () => this.hide());
+      addEventListener('scroll', () => this.on && this.hide(), { passive: true });
+      el.addEventListener('keydown', e => { if (e.key === 'Escape') this.hide(); });
+    }
+    measure() {} step() {}
+  }
+
+  // Rich: a dialogue box that opens in steps, types its line out, then offers answers
+  const OPEN_D = [.06, .3, .65, 1], CLOSE_D = [.65, .3, .06];
+  const LINES = {
+    off: { say: 'Morning! You watered everything by hand today. Want me to turn the sprinklers on, so every crop gets watered at 6am?', opts: [['Turn on sprinklers', 'on'], ['Not now', 'close']] },
+    on: { say: "Sprinklers are on! I'll water every crop at 6am, even on busy days.", opts: [['Turn them off', 'off'], ['Okay', 'close']] }
+  };
+  class Dialogue {
+    constructor(host, o) {
+      Object.assign(this, o);
+      const el = this.el = document.createElement('div'); el.className = 'inst';
+      this.W = 64; this.H = 60; this.ix = 20; this.iy = 14;
+      el.style.width = this.W * U + 'px'; el.style.height = this.H * U + 'px'; host.appendChild(el);
+      this.ctx = makeCanvas(el); this.ctx.resize(this.W, this.H); drawIcon(this.ctx, ICONS[this.icon], this.ix, this.iy);
+      label(el, this.label, this.ix + 12, this.iy + 29);
+      const d = this.dlg = document.createElement('div'); d.className = 'frame dlg'; d.id = 'dlg' + all.length; d.setAttribute('role', 'tooltip');
+      d.innerHTML = `<div class="txt"><p class="say" aria-live="polite"></p><div class="opts"></div></div><div class="port"><div class="pic"><canvas width="24" height="24"></canvas></div><span class="name">${this.speaker}</span></div>`;
+      d.style.bottom = (this.H - this.iy + 8) * U + 'px'; d.style.left = ((this.ix + 12) * U - 200) + 'px';
+      el.appendChild(d);
+      drawIcon(d.querySelector('canvas').getContext('2d'), ICONS[this.icon], 0, 0);
+      this.sayEl = d.querySelector('.say'); this.optsEl = d.querySelector('.opts');
+      this.sayEl.addEventListener('click', () => this.finishTyping());
+      const hit = this.hit = document.createElement('button'); hit.type = 'button'; hit.className = 'hit';
+      hit.setAttribute('aria-label', this.label); hit.setAttribute('aria-describedby', d.id);
+      Object.assign(hit.style, { left: (this.ix - 4) * U + 'px', top: (this.iy - 4) * U + 'px', width: 32 * U + 'px', height: 42 * U + 'px' });
+      el.appendChild(hit);
+      this.state = 'off'; this.open = false; this.seq = null; this.f = 0;
+      let tO, tC;
+      const open = ms => { clearTimeout(tC); clearTimeout(tO); tO = setTimeout(() => this.toggle(true), ms); };
+      const close = ms => { clearTimeout(tO); clearTimeout(tC); tC = setTimeout(() => this.toggle(false), ms); };
+      this.close = close;
+      hit.addEventListener('pointerenter', e => { if (e.pointerType === 'mouse') { el.classList.add('sel'); open(250); } });
+      hit.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') { el.classList.remove('sel'); close(350); } });
+      hit.addEventListener('click', e => { if (e.pointerType !== 'mouse') this.toggle(); });
+      d.addEventListener('pointerenter', () => clearTimeout(tC));
+      d.addEventListener('pointerleave', () => close(300));
+      hit.addEventListener('focus', () => { el.classList.add('sel'); open(0); });
+      el.addEventListener('focusout', e => { if (!el.contains(e.relatedTarget)) { el.classList.remove('sel'); close(0); } });
+      el.addEventListener('keydown', e => { if (e.key === 'Escape') { this.toggle(false); hit.focus(); } });
+      this.paint(0);
+    }
+    measure() {}
+    cur() { return this.seq ? this.seq === OPEN_D : this.open; }
+    toggle(v) { const want = v === undefined ? !this.cur() : v; if (want === this.cur()) return;
+      this.seq = want ? OPEN_D : CLOSE_D; this.f = 0; this.stopTyping(); this.sayEl.textContent = ''; this.optsEl.innerHTML = '';
+      this.paint(this.seq[0]); }
+    step() { if (!this.seq) return; this.f++;
+      if (this.f >= this.seq.length) { const opened = this.seq === OPEN_D; this.seq = null; this.open = opened; this.paint(opened ? 1 : 0); if (opened) this.type(LINES[this.state]); return; }
+      this.paint(this.seq[this.f]); }
+    clampX() { const d = this.dlg, base = (this.ix + 12) * U - 200; d.style.left = base + 'px';
+      const f = this.el.closest('.field').getBoundingClientRect(), r = d.getBoundingClientRect(); let dx = 0;
+      if (r.left < f.left + 10) dx = f.left + 10 - r.left; else if (r.right > f.right - 10) dx = f.right - 10 - r.right;
+      d.style.left = (base + dx) + 'px'; }
+    paint(s) { const d = this.dlg; if (s > 0 && d.style.visibility !== 'visible') this.clampX(); d.style.visibility = s > 0 ? 'visible' : 'hidden'; d.style.transform = `scaleY(${s})`;
+      d.querySelector('.txt').style.visibility = d.querySelector('.port').style.visibility = s >= 1 ? 'visible' : 'hidden'; }
+    type(line) {
+      this.stopTyping(); this.line = line; this.optsEl.innerHTML = ''; let i = 0; const say = this.sayEl; say.textContent = '';
+      const tick = () => { i = Math.min(line.say.length, i + 1); say.textContent = line.say.slice(0, i); if (i >= line.say.length) this.finishTyping(); };
+      this.timer = setInterval(tick, 32 * (S.slow ? 4 : 1));
+    }
+    stopTyping() { clearInterval(this.timer); this.timer = null; }
+    finishTyping() {
+      if (!this.line) return; this.stopTyping(); this.sayEl.textContent = this.line.say;
+      if (this.optsEl.childElementCount) return;
+      this.line.opts.forEach(([t, act]) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'opt'; b.textContent = t;
+        b.addEventListener('click', () => { if (act === 'close') { this.toggle(false); this.hit.focus(); } else { this.state = act; this.type(LINES[act]); } });
+        this.optsEl.appendChild(b); });
+    }
+  }
+
+  const hs = document.getElementById('hop-stage');
+  const hops = [
+    new Hop(hs, { icon: 'mail', label: 'Mail', content: '3' }),
+    new Hop(hs, { icon: 'chest', label: 'Chest', content: '12' }),
+    new Hop(hs, { icon: 'crops', label: 'Crops', content: '' }),
+    new Hop(hs, { icon: 'shop', label: 'Shop', content: 'NEW' })
+  ];
+  const ns = document.getElementById('note-stage');
+  const notes = [
+    new HoverTip(ns, { icon: 'seeds', label: 'Seeds', title: 'Parsnip Seeds', cat: 'Seeds', desc: 'Plant in spring. Takes 4 days to mature.' }),
+    new Dialogue(ns, { icon: 'can', label: 'Water', speaker: 'Watering Can' })
+  ];
+  all.push(...hops, ...notes);
+  const statusEl = document.getElementById('hop-status');
+  function update() { const n = hops.filter(h => h.on).length; statusEl.textContent = n ? `${n} of 4 need you` : 'All caught up'; }
+  update();
+  document.fonts && document.fonts.ready.then(() => all.forEach(i => i.measure()));
+  document.getElementById('all-on').onclick = () => hops.forEach((h, i) => setTimeout(() => h.toggle(true), i * 180));
+  document.getElementById('all-off').onclick = () => hops.forEach((h, i) => setTimeout(() => h.toggle(false), i * 120));
+  document.getElementById('slow').onchange = e => { S.slow = e.target.checked; };
+  let acc = 0, last = performance.now();
+  (function loop(now) { acc += Math.min(200, now - last); last = now; const fr = FRAME * (S.slow ? 4 : 1); while (acc >= fr) { acc -= fr; if (!S.frozen) all.forEach(i => i.step()); } requestAnimationFrame(loop); })(last);
+  setTimeout(() => hops.forEach((h, i) => setTimeout(() => h.toggle(i !== 3), i * 260)), 400);
+  window.__hn = { hops, notes, ENTER_B, EXIT_B, OPEN_D, CLOSE_D, LINES, freeze: v => { S.frozen = v; } };
+})();
+</script>
+
+</body>
+</html>
